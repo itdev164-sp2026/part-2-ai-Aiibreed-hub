@@ -66,3 +66,40 @@
 ### Reflection
 
 > The Agent did not accidentally delete or overwrite any of my Activity 1 code. It carefully preserved the Developer Profile content in src/app/page.tsx and maintained all existing functionality including the dark mode toggle. I learned that providing clear context about existing code that needs to be preserved is crucial - by specifically mentioning "Preserve the Developer Profile content from Activity 1", the Agent understood exactly what to protect while making the necessary layout changes.
+
+
+## Activity 3: Server-Side Data with Supabase
+
+### Prompt 1
+
+**What I asked:**
+
+> Using the Supabase client at src/lib/supabase.ts, create a new Server Component at src/app/projects/page.tsx that:
+> 
+> 1. Fetches all records from the "projects" table in Supabase
+> 2. Displays them in a professional layout using shadcn/ui Card components (run `npx shadcn@latest add card` if needed)
+> 3. Each card should show the project title, description, and a status badge
+> 4. The status badge should be color-coded:
+>    - "active" = green
+>    - "completed" = blue
+>    - "archived" = gray
+> 
+> Use @workspace context to match the styling of our existing Dashboard. This must be a React Server Component (async function, no "use client"). Do NOT use useEffect or useState for data fetching.
+
+**What happened:**
+
+> The Agent created a Server Component at src/app/projects/page.tsx and used async/await to fetch data directly from Supabase. It did not use useEffect or useState. The page renders professional shadcn/ui cards with title, description, and a color-coded status badge. The layout matches the existing dashboard style, and the data is fetched server-side as requested.
+
+### Prompt 2
+
+**What I asked:**
+
+> (No follow-up prompt was needed - the projects page worked as intended with server-side fetching and card layout)
+
+**What happened:**
+
+> (No follow-up was required since the Agent successfully created the Server Component and implemented the requested layout and status badges on the first attempt)
+
+### Reflection
+
+> Fetching data on the server feels much cleaner than the useEffect pattern from Web Programming 1. It avoids client-side lifecycle complexity and makes the page render with data already available, which is faster and more reliable. In the App Router, server-side data fetching is surprisingly simple: just write an async component and await the Supabase client, with no extra hooks or loading state needed for the initial render.
