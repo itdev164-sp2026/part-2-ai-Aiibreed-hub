@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ export default function RootLayout({
                 <div className="mx-auto max-w-5xl">{children}</div>
               </main>
             </div>
+            <Toaster />
           </SidebarProvider>
         </ThemeProvider>
       </body>
