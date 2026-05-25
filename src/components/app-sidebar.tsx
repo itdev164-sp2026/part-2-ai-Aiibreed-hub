@@ -1,8 +1,9 @@
 "use client"
 
-import { Home, FolderOpen, Settings } from "lucide-react"
+import { Home, FolderOpen, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { type User } from "@supabase/supabase-js"
 
 import {
   Sidebar,
@@ -15,6 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
+import { signOutAction } from "@/app/actions"
 
 const navItems = [
   {
@@ -34,8 +36,16 @@ const navItems = [
   },
 ]
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  user?: User | null
+}
+
+export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname()
+
+  const handleSignOut = async () => {
+    await signOutAction()
+  }
 
   return (
     <Sidebar>
@@ -62,6 +72,21 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {user && (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   )
