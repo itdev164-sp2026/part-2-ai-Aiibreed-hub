@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +21,16 @@ export const metadata: Metadata = {
   description: "AI-native web development with Next.js, Tailwind, and Supabase",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body className={`${inter.variable} font-sans antialiased`}>
@@ -35,7 +41,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SidebarProvider>
-            <AppSidebar />
+            <AppSidebar user={user} />
             <div className="flex w-full flex-col">
               <Header />
               <main className="flex-1 px-4 py-8">

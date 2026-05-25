@@ -11,3 +11,10 @@ export const projectSchema = z.object({
 });
 
 export type ProjectSchema = z.infer<typeof projectSchema>;
+
+export const authSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+});
+
+export type AuthSchema = z.infer<typeof authSchema>;

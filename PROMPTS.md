@@ -168,3 +168,41 @@
 ### Reflection
 
 > The schema-first approach with Zod makes form validation much more predictable and reusable. It helps prevent junk data from reaching the database by validating both client and server inputs against the same schema, so invalid fields are caught before insertion. Compared to previous courses where form validation often relied on ad-hoc checks or `useEffect`, Zod provides a cleaner, centralized contract for data shape and error messages.
+
+
+## Activity 5: Securing the App with Supabase Auth
+
+### Prompt 1
+
+**What I asked:**
+
+> Implement a complete email/password authentication flow for this Next.js 15 App Router project using @supabase/ssr. Here is what I need:
+>
+> 1. **SUPABASE CLIENTS**: Create server-side Supabase client utilities in `src/lib/supabase/` that work correctly with Next.js cookies. I need separate clients for Server Components, Server Actions, and Middleware.
+>
+> 2. **LOGIN PAGE**: Create a page at `src/app/(auth)/login/page.tsx` with a shadcn/ui card-based login form. It should support both "Sign In" and "Sign Up" (toggle between them). Handle auth via Server Actions, not client-side fetch.
+>
+> 3. **MIDDLEWARE**: Create `src/middleware.ts` that refreshes the user's auth session on every request, protects `/projects` routes, allows unauthenticated access to `/login`, and uses `supabase.auth.getUser()` (NOT `getSession()`) for verification.
+>
+> 4. **SIGN OUT**: Add a "Sign Out" button to the sidebar that calls a Server Action, signs the user out, and redirects to `/login`. Only render when authenticated.
+>
+> 5. **UPDATE DATA QUERIES**: Modify the projects page and create-project action to use the authenticated Supabase client with RLS policies.
+
+**What happened:**
+
+> The Agent created and modified 17 files in a single coordinated pass. It created: `src/lib/supabase/server.ts`, `src/lib/supabase/middleware.ts`, `src/lib/supabase/cookies.ts`, `src/components/auth-form.tsx`, `src/app/(auth)/login/page.tsx`, `src/app/auth/callback/route.ts`, `src/middleware.ts`, and supporting documentation. It also modified 9 existing files including `src/app/actions.ts` with auth actions, `src/app/layout.tsx` to be async and fetch the user, `src/components/app-sidebar.tsx` to add a Sign Out button, `src/app/projects/page.tsx` to use the authenticated client, and `src/lib/schemas.ts` with auth validation. The Agent understood that authentication isn't isolated—it requires coordinating middleware, layouts, actions, and database policies into a cohesive system.
+
+### Prompt 2
+
+**What I asked:**
+
+> check the errors
+
+**What happened:**
+
+> The Agent identified three cascading TypeScript errors in the middleware: (1) using `response.redirect()` instead of `NextResponse.redirect()` (instance method vs static method), (2) attempting to set the read-only `response.status` property, and (3) missing the `NextResponse` import. It fixed all three by importing `NextResponse`, replacing the instance method calls with static `NextResponse.redirect()`, and preserving the Supabase session headers via `{ headers: response.headers }`. The middleware now compiles without errors.
+
+### Reflection
+
+> The biggest surprise was that the **root layout needed to become async**. Most developers would add login, middleware, and sign out, then assume they're done. But the layout must fetch `auth.getUser()` and pass the user as a prop to AppSidebar so it can conditionally render the Sign Out button—this cascading dependency isn't obvious upfront. I learned that middleware-based auth (centralizing route protection and session refresh) is far superior to component-level checks scattered across pages, but both have roles: middleware handles guards, layouts handle props. The three redirect bugs taught me that `NextResponse` uses only static methods and that cookie headers must be explicitly preserved when redirecting from middleware.
+

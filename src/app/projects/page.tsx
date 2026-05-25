@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ interface Project {
 }
 
 async function getProjects(): Promise<Project[]> {
+  const supabase = await createClient();
+
   const { data, error } = await supabase
     .from("projects")
     .select("*")
