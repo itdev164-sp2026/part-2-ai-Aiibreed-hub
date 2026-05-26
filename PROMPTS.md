@@ -206,3 +206,57 @@
 
 > The biggest surprise was that the **root layout needed to become async**. Most developers would add login, middleware, and sign out, then assume they're done. But the layout must fetch `auth.getUser()` and pass the user as a prop to AppSidebar so it can conditionally render the Sign Out button—this cascading dependency isn't obvious upfront. I learned that middleware-based auth (centralizing route protection and session refresh) is far superior to component-level checks scattered across pages, but both have roles: middleware handles guards, layouts handle props. The three redirect bugs taught me that `NextResponse` uses only static methods and that cookie headers must be explicitly preserved when redirecting from middleware.
 
+
+## Activity 6: Deployment, Webhooks, & AI-Testing
+
+### Prompt 1
+
+**What I asked:**
+
+> I have a Next.js app with Supabase Auth. Using @workspace context to understand the app structure, write an End-to-End (E2E) test file at tests/auth.spec.ts using Playwright.
+>
+> The tests should verify:
+> 1. **LOGIN PAGE VISIBLE**: Navigate to /login and confirm the login form is visible (check for email input, password input, and submit button).
+> 2. **REDIRECT AFTER LOGIN**: After a successful login with valid credentials, the user is redirected to the dashboard or projects page.
+> 3. **SIDEBAR NAVIGATION**: After login, verify that the sidebar navigation links are visible: "Overview", "Projects", and "Settings".
+>
+> Requirements:
+> - Use role-based locators (getByRole, getByLabel, getByText) instead of CSS selectors or test IDs. This makes tests more accessible and resilient to UI changes.
+> - Add clear test descriptions that explain what each test verifies.
+> - Handle the async nature of navigation and page loads with proper Playwright waiting strategies.
+> - Read test credentials from process.env.TEST_USER_EMAIL and process.env.TEST_USER_PASSWORD. Do not hardcode credentials. If those variables are not set, the credentialed tests should skip with a clear message rather than fail.
+
+**What happened:**
+
+> The Agent created `tests/auth.spec.ts` with all three test cases using role-based locators and clear docstrings. It correctly identified the auth flow from the workspace context and implemented proper async handling with `waitForLoadState()` and `waitForURL()`. The tests read credentials from environment variables and used `test.skip()` to gracefully skip tests when credentials weren't provided. **However, the initial tests failed on the first run** due to mismatches with the actual component structure: (1) `CardTitle` renders as a `<div>`, not a semantic heading, so the `getByRole('heading')` query failed, and (2) sidebar navigation links appeared in both the sidebar and breadcrumb, causing strict mode violations. The Agent had done the right thing by using role-based locators—the issue was understanding how Shadcn/ui custom components actually render.
+
+### Prompt 2
+
+**What I asked:**
+
+> This Playwright test is failing with the following error: ... Look at the actual component code in @workspace and fix the test to match the real UI. Use role-based locators.
+
+**What happened:**
+
+> The Agent examined the actual component code, discovered that `CardTitle` renders as a styled `<div>` (not a heading), and that navigation links exist in both sidebar and breadcrumb. It then made three iterative fixes:
+> 1. First attempt: Changed heading query to `page.getByText(/sign in/i)`, but this still hit strict mode because the text appeared in the title, description, and button.
+> 2. Second attempt: Tried filtering with XPath-like expressions, which proved too complex.
+> 3. **Third attempt (final)**: Used `page.getByText(/^Sign In$/).first()` for the title (exact text match + first occurrence) and added `.first()` to the sidebar navigation queries to select only the sidebar link, excluding the breadcrumb.
+>
+> **All three tests passed on the third iteration**, and the solution remained 100% role-based—no data-testid attributes or CSS selectors were introduced.
+
+### Reflection
+
+> Having the AI write and run tests **significantly increases confidence in the deploy button**. The Agent caught UI mismatches that a manual setup would have—specifically the difference between Shadcn's component rendering and standard HTML semantics. If I had written these tests manually in the browser, I likely would have resorted to CSS selectors or test IDs out of frustration, which would couple the tests to implementation details. Instead, by iterating with the Agent through actual test failures, I learned that role-based locators require understanding *how components render*, not just what role they should have. The Agent didn't just generate tests; it debugged the gap between intent and implementation, which is exactly where manual testing usually breaks down.
+
+### Course Reflection
+
+> Looking back at my Activity 1 prompt compared to now: **I've gone from vague ("build a dashboard") to hyper-specific ("use @workspace, role-based locators only, gracefully handle missing env vars, re-validate on server")**. 
+>
+> My prompting strategy evolved in three ways:
+> 1. **Context is everything**: Early prompts left ambiguity. Now I always provide @workspace context and reference actual file paths, making the Agent's job deterministic rather than creative.
+> 2. **Constraints drive quality**: I learned to say "no CSS selectors, only role-based" instead of hoping the Agent would choose the right pattern. Constraints eliminate guesswork.
+> 3. **Expect failure as learning**: In Activity 1, a failed prompt felt like the Agent "didn't understand." By Activity 6, I treat failures as data—they reveal what the Agent assumed versus what's real, which makes the next iteration precise.
+>
+> **The most important thing I learned**: **AI coding tools excel at iteration, not divination.** The first run of any non-trivial feature will have gaps. Rather than trying to write the "perfect prompt" upfront, I now think of prompting as a conversation where each iteration refines the constraint space. The Agent is a knowledge base + execution engine; my job is to translate "what I want" into "constraints that eliminate wrong answers." When I did that here—"role-based locators only," "read from env vars," "skip tests if missing"—the Agent executed flawlessly. When I was vague, it filled gaps with reasonable defaults that didn't match my intent.
+
