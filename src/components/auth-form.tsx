@@ -18,33 +18,44 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false)
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<AuthSchema>({
-    resolver: zodResolver(authSchema),
-  })
+  register,
+  handleSubmit,
+  reset,
+  formState: { errors },
+} = useForm<AuthSchema>({
+  resolver: zodResolver(authSchema),
+});
+
 
   const onSubmit = async (data: AuthSchema) => {
-    setIsLoading(true)
-    try {
-      const result =
-        mode === "signin" ? await signInAction(data) : await signUpAction(data)
+  setIsLoading(true);
 
-      if (!result.success) {
-        toast.error(result.error)
-      } else if (mode === "signup") {
-        toast.success(result.message)
-        reset()
-      }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.")
-      console.error(error)
-    } finally {
-      setIsLoading(false)
-    }
+  try {
+    const action = mode === "signin" ? signInAction : signUpAction;
+    const result = await action(data);
+
+    if (!result.success) {
+  toast.error(result.error);
+  return;
+}
+
+if ("message" in result && result.message) {
+  toast.success(result.message);
+  reset();
+}
+
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unexpected error occurred";
+    toast.error(message);
+    console.error(error);
+  } finally {
+    setIsLoading(false);
   }
+};
+
+
+
 
   return (
     <Card className="w-full max-w-sm">
